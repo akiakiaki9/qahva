@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Categories from '@/components/Categories';
@@ -15,6 +15,21 @@ export default function Home() {
   const [activeCat, setActiveCat] = useState('black');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderOpen, setOrderOpen] = useState(false);
+
+  const menuTopRef = useRef(null);
+
+  // При смене категории — плавно скроллим к началу блока меню
+  const handleCategoryChange = (catId) => {
+    setActiveCat(catId);
+
+    // Скролл к категориям (чуть выше сетки), чтобы продукты начинались сверху
+    if (menuTopRef.current) {
+      const yOffset = -10; // небольшой отступ, чтобы не было "впритык"
+      const y = menuTopRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
 
   return (
     <>
@@ -33,7 +48,11 @@ export default function Home() {
           </div>
         </div>
 
-        <Categories active={activeCat} setActive={setActiveCat} />
+        {/* Точка отсчёта — sticky-блок категорий */}
+        <div ref={menuTopRef}>
+          <Categories active={activeCat} setActive={handleCategoryChange} />
+        </div>
+
         <Menu active={activeCat} onOpen={setSelectedProduct} />
       </section>
 
