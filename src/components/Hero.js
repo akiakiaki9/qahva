@@ -40,6 +40,7 @@ export default function Hero() {
                 <img
                     src="/images/hero.png"
                     alt="Кофейня Qahva"
+                    loading="lazy"
                 />
                 <div className="hero-floating f1">
                     <FiClock /> Открыто 24/7
