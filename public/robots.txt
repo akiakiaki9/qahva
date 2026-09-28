@@ -1,0 +1,44 @@
+# robots.txt для qahvabukhara.uz
+
+User-agent: *
+Allow: /
+
+# Служебные пути
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /cart/
+Disallow: /checkout/
+
+# URL с параметрами, которые могут создавать дубли
+Disallow: /*?guest=
+Disallow: /*?utm_
+Disallow: /*?ref=
+
+# Yandex
+User-agent: Yandex
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /cart/
+Disallow: /checkout/
+
+# Плохие/нежелательные боты
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+# Sitemap
+Sitemap: https://www.qahvabukhara.uz/sitemap.xml
