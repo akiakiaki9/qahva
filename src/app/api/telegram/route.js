@@ -33,7 +33,7 @@ const mainKeyboard = [
     ],
     [
         { text: '📷 Instagram', url: 'https://www.instagram.com/qahva.bukhara/' },
-        { text: '📞 Позвонить', url: 'tel:+998997020030' },
+        { text: '💬 Написать нам', url: 'https://t.me/qahvabukhara_bot' },
     ],
 ];
 
