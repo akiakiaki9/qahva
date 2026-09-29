@@ -4,31 +4,21 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const ADMIN_CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID || '';
 const API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
-const PHONE = '+998 99 702 00 30';
-const PHONE_RAW = '+998997020030';
-const INSTAGRAM = 'https://www.instagram.com/qahva.bukhara/';
-const ADDRESS = 'Бухара, Узбекистан';
+console.log('🔧 [route.js] loaded. Token:', BOT_TOKEN ? 'yes' : 'NO', 'Admin:', ADMIN_CHAT_ID || 'NO');
 
-// ============ ЛОГИ при загрузке модуля ============
-console.log('🔧 [route.js] Модуль загружается');
-console.log('🔧 BOT_TOKEN:', BOT_TOKEN ? `есть (${BOT_TOKEN.slice(0, 10)}...)` : '❌ ПУСТОЙ!');
-console.log('🔧 ADMIN_CHAT_ID:', ADMIN_CHAT_ID || '❌ ПУСТОЙ!');
-
-// ============ Отправка сообщения ============
+// ============ sendMessage с логами ============
 async function sendMessage(chatId, text, keyboard) {
-    console.log('📤 sendMessage →', chatId);
-    console.log('📤 Text:', text.slice(0, 80));
+    console.log('📤 sendMessage START → chatId:', chatId);
 
     if (!BOT_TOKEN) {
-        console.error('❌ BOT_TOKEN пустой — отправить не могу');
-        return { ok: false };
+        console.error('❌ НЕТ BOT_TOKEN');
+        return { ok: false, error: 'no token' };
     }
 
     const body = {
         chat_id: chatId,
-        text,
+        text: text,
         parse_mode: 'Markdown',
-        disable_web_page_preview: true,
     };
     if (keyboard) body.reply_markup = { inline_keyboard: keyboard };
 
@@ -39,19 +29,22 @@ async function sendMessage(chatId, text, keyboard) {
             body: JSON.stringify(body),
         });
         const data = await res.json();
+
+        console.log('📥 sendMessage ответ:', JSON.stringify(data).slice(0, 300));
+
         if (!data.ok) {
-            console.error('❌ sendMessage FAILED:', JSON.stringify(data));
+            console.error('❌ sendMessage FAILED:', data.description);
         } else {
-            console.log('✅ sendMessage OK, message_id:', data.result?.message_id);
+            console.log('✅ sendMessage OK, msg_id:', data.result?.message_id);
         }
         return data;
     } catch (err) {
-        console.error('❌ sendMessage fetch error:', err);
-        return { ok: false };
+        console.error('❌ sendMessage EXCEPTION:', err.message);
+        return { ok: false, error: err.message };
     }
 }
 
-// ============ Клавиатуры ============
+// ============ Клавиатуры и текст ============
 const mainKeyboard = [
     [
         { text: '☕ Меню', callback_data: 'menu' },
@@ -62,119 +55,147 @@ const mainKeyboard = [
         { text: 'ℹ️ О нас', callback_data: 'about' },
     ],
     [
-        { text: '📷 Instagram', url: INSTAGRAM },
-        { text: '📞 Позвонить', url: `tel:${PHONE_RAW}` },
+        { text: '📷 Instagram', url: 'https://www.instagram.com/qahva.bukhara/' },
+        { text: '📞 Позвонить', url: 'tel:+998997020030' },
     ],
 ];
 
-const TEXT = {
-    start:
-        '☕ *Добро пожаловать в Qahva Bukhara!*\n\n' +
-        'Место, где кофе встречается с искусством.\n' +
-        'Работаем *круглосуточно · 24/7* 🕐\n\n' +
-        'Выберите, что вас интересует:',
-    about:
-        '☕ *О Qahva Bukhara*\n\n' +
-        'Мы — кофейня в Бухаре, где каждый напиток готовится с любовью.\n\n' +
-        '🕐 Работаем *круглосуточно · 24/7*\n' +
-        `📍 ${ADDRESS}\n` +
-        `📞 ${PHONE}`,
-    contacts:
-        '📞 *Контакты Qahva*\n\n' +
-        `📱 Телефон: ${PHONE}\n` +
-        '💬 Telegram: @qahvabukhara_bot\n' +
-        `📷 Instagram: [@qahva.bukhara](${INSTAGRAM})\n\n` +
-        '🕐 Работаем *круглосуточно · 24/7*',
-};
+const TEXT_START =
+    '☕ *Добро пожаловать в Qahva Bukhara!*\n\n' +
+    'Место, где кофе встречается с искусством.\n' +
+    'Работаем *круглосуточно · 24/7* 🕐\n\n' +
+    'Выберите, что вас интересует:';
+
+const TEXT_ABOUT =
+    '☕ *О Qahva Bukhara*\n\n' +
+    'Кофейня в Бухаре, где каждый напиток готовится с любовью.\n\n' +
+    '🕐 Работаем *круглосуточно · 24/7*\n' +
+    '📍 Бухара, Узбекистан\n' +
+    '📞 +998 99 702 00 30';
+
+const TEXT_CONTACTS =
+    '📞 *Контакты Qahva*\n\n' +
+    '📱 Телефон: +998 99 702 00 30\n' +
+    '💬 Telegram: @qahvabukhara_bot\n' +
+    '📷 Instagram: @qahva.bukhara';
 
 // ============ POST ============
 export async function POST(req) {
-    console.log('🚀 [POST] /api/telegram ВЫЗВАН');
+    console.log('🚀 [POST] START');
 
+    // --- ШАГ 1: парсинг JSON ---
     let update;
     try {
-        update = await req.json();
-        console.log('📥 Update получен:', JSON.stringify(update).slice(0, 200));
+        const raw = await req.text();
+        console.log('📥 RAW (первые 500):', raw.slice(0, 500));
+        update = JSON.parse(raw);
+        console.log('✅ JSON распарсен, update_id:', update.update_id);
     } catch (err) {
-        console.error('❌ Не удалось распарсить JSON:', err);
+        console.error('❌ Ошибка парсинга JSON:', err.message);
         return NextResponse.json({ ok: true });
     }
 
+    // --- ШАГ 2: определяем тип апдейта ---
     try {
-        // ========== CALLBACK (кнопки) ==========
-        if (update.callback_query) {
-            console.log('🔘 Callback:', update.callback_query.data);
+        const hasMessage = !!update.message;
+        const hasCallback = !!update.callback_query;
+        console.log('🔎 hasMessage:', hasMessage, 'hasCallback:', hasCallback);
+
+        // ==================== CALLBACK ====================
+        if (hasCallback) {
+            console.log('🔘 Callback data:', update.callback_query.data);
             const cb = update.callback_query;
             const chatId = cb.message.chat.id;
+            const data = cb.data;
 
-            await fetch(`${API}/answerCallbackQuery`, {
+            // Answer callback (убрать «часики»)
+            fetch(`${API}/answerCallbackQuery`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ callback_query_id: cb.id }),
-            });
+            }).catch(() => { });
 
-            if (cb.data === 'start') {
-                await sendMessage(chatId, TEXT.start, mainKeyboard);
-            } else if (cb.data === 'about') {
-                await sendMessage(chatId, TEXT.about, mainKeyboard);
-            } else if (cb.data === 'contacts') {
-                await sendMessage(chatId, TEXT.contacts, mainKeyboard);
-            } else if (cb.data === 'address') {
-                await sendMessage(chatId, `📍 *Адрес:* ${ADDRESS}`, [
+            let text = 'Обработка...';
+            let keyboard = mainKeyboard;
+
+            if (data === 'start') text = TEXT_START;
+            else if (data === 'about') text = TEXT_ABOUT;
+            else if (data === 'contacts') text = TEXT_CONTACTS;
+            else if (data === 'address') {
+                text = '📍 *Адрес:* Бухара, Узбекистан';
+                keyboard = [
                     [{ text: '🗺 Яндекс.Карты', url: 'https://yandex.ru/maps/?text=Bukhara' }],
                     [{ text: '⬅️ Назад', callback_data: 'start' }],
-                ]);
-            } else if (cb.data === 'menu') {
-                await sendMessage(chatId, '☕ *Меню Qahva*\n\nСкоро здесь появятся категории 😊', [
-                    [{ text: '⬅️ Назад', callback_data: 'start' }],
-                ]);
+                ];
+            } else if (data === 'menu') {
+                text = '☕ *Меню Qahva*\n\nСкоро здесь появятся категории 😊';
+                keyboard = [[{ text: '⬅️ Назад', callback_data: 'start' }]];
             }
 
+            await sendMessage(chatId, text, keyboard);
             return NextResponse.json({ ok: true });
         }
 
-        // ========== MESSAGE (текст) ==========
-        if (update.message) {
+        // ==================== MESSAGE ====================
+        if (hasMessage) {
             const msg = update.message;
-            const chatId = msg.chat.id;
-            const text = (msg.text || '').trim();
+            const chatId = msg.chat?.id;
+
+            console.log('💬 chatId:', chatId);
+
+            if (!chatId) {
+                console.error('❌ Нет chatId!');
+                return NextResponse.json({ ok: true });
+            }
+
+            const text = msg.text || '';
             const lower = text.toLowerCase();
             const noSlash = lower.replace(/^\//, '');
 
             console.log('📨 Text:', JSON.stringify(text));
-            console.log('🔍 Lower:', JSON.stringify(lower));
             console.log('🔍 NoSlash:', JSON.stringify(noSlash));
 
             // /start
             if (noSlash === 'start' || noSlash.startsWith('start')) {
-                console.log('✅ Обработка: /start');
-                await sendMessage(chatId, TEXT.start, mainKeyboard);
+                console.log('✅ → start');
+                await sendMessage(chatId, TEXT_START, mainKeyboard);
                 return NextResponse.json({ ok: true });
             }
 
-            // меню / menu
-            if (noSlash === 'menu' || noSlash.includes('menu') || lower.includes('меню')) {
-                console.log('✅ Обработка: menu');
-                await sendMessage(chatId, '☕ *Меню Qahva*\n\nСкоро здесь появятся категории 😊', mainKeyboard);
+            // menu
+            if (noSlash.includes('menu') || lower.includes('меню')) {
+                console.log('✅ → menu');
+                await sendMessage(
+                    chatId,
+                    '☕ *Меню Qahva*\n\nСкоро здесь появятся категории 😊',
+                    mainKeyboard
+                );
                 return NextResponse.json({ ok: true });
             }
 
-            // контакты
-            if (noSlash === 'contacts' || lower.includes('контакт')) {
-                console.log('✅ Обработка: contacts');
-                await sendMessage(chatId, TEXT.contacts, mainKeyboard);
+            // contacts
+            if (noSlash.includes('contact') || lower.includes('контакт')) {
+                console.log('✅ → contacts');
+                await sendMessage(chatId, TEXT_CONTACTS, mainKeyboard);
                 return NextResponse.json({ ok: true });
             }
 
-            // адрес
-            if (noSlash === 'address' || lower.includes('адрес')) {
-                console.log('✅ Обработка: address');
-                await sendMessage(chatId, `📍 *Адрес:* ${ADDRESS}`, mainKeyboard);
+            // address
+            if (noSlash.includes('address') || lower.includes('адрес')) {
+                console.log('✅ → address');
+                await sendMessage(chatId, '📍 *Адрес:* Бухара, Узбекистан', mainKeyboard);
+                return NextResponse.json({ ok: true });
+            }
+
+            // about
+            if (noSlash.includes('about') || lower.includes('о нас')) {
+                console.log('✅ → about');
+                await sendMessage(chatId, TEXT_ABOUT, mainKeyboard);
                 return NextResponse.json({ ok: true });
             }
 
             // Fallback
-            console.log('⚠️ Fallback — команда не распознана');
+            console.log('⚠️ → fallback');
             await sendMessage(
                 chatId,
                 'Здравствуйте! 👋\n\nЯ бот кофейни *Qahva Bukhara*.\nНажмите кнопки ниже:',
@@ -183,10 +204,11 @@ export async function POST(req) {
             return NextResponse.json({ ok: true });
         }
 
-        console.log('⚠️ Не message и не callback — что-то другое');
+        // Что-то другое
+        console.log('⚠️ Апдейт неизвестного типа:', Object.keys(update));
         return NextResponse.json({ ok: true });
     } catch (err) {
-        console.error('❌❌❌ CRITICAL ERROR:', err.message);
+        console.error('❌❌❌ CRITICAL:', err.message);
         console.error('❌ Stack:', err.stack);
         return NextResponse.json({ ok: true });
     }
@@ -196,8 +218,8 @@ export async function GET() {
     return NextResponse.json({
         ok: true,
         message: 'Qahva Telegram webhook is running',
-        version: '3.0-debug',
+        version: '4.0',
         hasToken: !!BOT_TOKEN,
-        hasAdminChat: !!ADMIN_CHAT_ID,
+        hasAdmin: !!ADMIN_CHAT_ID,
     });
 }
