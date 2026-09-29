@@ -8,6 +8,7 @@ import Menu from '@/components/Menu';
 import ProductModal from '@/components/ProductModal';
 import Cart from '@/components/Cart';
 import OrderForm from '@/components/OrderForm';
+import Contacts from '@/components/Contacts';
 import Footer from '@/components/Footer';
 import FloatingCart from '@/components/FloatingCart';
 
@@ -15,18 +16,12 @@ export default function Home() {
   const [activeCat, setActiveCat] = useState('black');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderOpen, setOrderOpen] = useState(false);
-
   const menuTopRef = useRef(null);
 
-  // При смене категории — плавно скроллим к началу блока меню
   const handleCategoryChange = (catId) => {
     setActiveCat(catId);
-
-    // Скролл к категориям (чуть выше сетки), чтобы продукты начинались сверху
     if (menuTopRef.current) {
-      const yOffset = -10; // небольшой отступ, чтобы не было "впритык"
-      const y = menuTopRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
-
+      const y = menuTopRef.current.getBoundingClientRect().top + window.scrollY - 10;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
@@ -48,13 +43,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Точка отсчёта — sticky-блок категорий */}
         <div ref={menuTopRef}>
           <Categories active={activeCat} setActive={handleCategoryChange} />
         </div>
 
         <Menu active={activeCat} onOpen={setSelectedProduct} />
       </section>
+
+      <Contacts />
 
       <Footer />
 
