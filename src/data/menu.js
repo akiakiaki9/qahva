@@ -8,21 +8,21 @@ const images = {
     milkshake: '/images/milkshake.jpg',
 };
 
-export const categories = [
-    { id: 'black', name: 'Чёрный кофе', image: images.coffee },
-    { id: 'milk', name: 'Кофе с молоком', image: images.milkCoffee },
-    { id: 'raf', name: 'Раф', image: images.milkCoffee },
-    { id: 'cold', name: 'Холодный кофе', image: images.icedCoffee },
-    { id: 'noncoffee', name: 'Не кофе', image: images.tea },
-    { id: 'detox', name: 'Детокс', image: images.juice },
-    { id: 'smoothie', name: 'Смузи', image: images.smoothie },
-    { id: 'matcha', name: 'Матча', image: images.smoothie },
-    { id: 'fresh', name: 'Fresh', image: images.juice },
-    { id: 'milkshake', name: 'Милкшейк', image: images.milkshake },
-    { id: 'juice', name: 'Соки', image: images.juice },
-    { id: 'lemonade', name: 'Лимонад', image: images.juice },
-    { id: 'chineseTea', name: 'Китайский чай', image: images.tea },
-    { id: 'authorTea', name: 'Авторский чай', image: images.tea },
+const categoryNames = [
+    { id: 'black', name: 'Чёрный кофе' },
+    { id: 'milk', name: 'Кофе с молоком' },
+    { id: 'raf', name: 'Раф' },
+    { id: 'cold', name: 'Холодный кофе' },
+    { id: 'noncoffee', name: 'Не кофе' },
+    { id: 'detox', name: 'Детокс' },
+    { id: 'smoothie', name: 'Смузи' },
+    { id: 'matcha', name: 'Матча' },
+    { id: 'fresh', name: 'Fresh' },
+    { id: 'milkshake', name: 'Милкшейк' },
+    { id: 'juice', name: 'Соки' },
+    { id: 'lemonade', name: 'Лимонад' },
+    { id: 'chineseTea', name: 'Китайский чай' },
+    { id: 'authorTea', name: 'Авторский чай' },
 ];
 
 let nextId = 1001;
@@ -159,3 +159,8 @@ export const menu = [
         ['Бардак чай (большой)', 70000],
     ]),
 ];
+
+export const categories = categoryNames.map((category) => ({
+    ...category,
+    image: menu.find((item) => item.cat === category.id)?.image || images.coffee,
+}));
