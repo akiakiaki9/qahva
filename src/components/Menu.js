@@ -23,7 +23,7 @@ export default function Menu({ active, onOpen }) {
                         <img
                             src={item.image || PLACEHOLDER}
                             alt={item.title}
-                            loading="lazy"
+                            loading={i < 2 ? 'eager' : 'lazy'}
                             onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
                         />
                     </div>

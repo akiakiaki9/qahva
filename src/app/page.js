@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Categories from '@/components/Categories';
@@ -17,6 +17,13 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderOpen, setOrderOpen] = useState(false);
   const menuTopRef = useRef(null);
+
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleCategoryChange = (catId) => {
     setActiveCat(catId);
@@ -38,7 +45,7 @@ export default function Home() {
               Наше <em>меню</em>
             </h2>
             <p className="section-sub">
-              Свежеобжаренный кофе и десерты ручной работы каждый день
+              Кофе, чай и освежающие напитки на любой вкус
             </p>
           </div>
         </div>

@@ -1355,6 +1355,44 @@ img {
   color: var(--brown);
 }
 
+.order-call {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--dark);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 800;
+  transition: background .2s, transform .2s;
+}
+
+.order-call:hover {
+  background: var(--brown);
+  transform: translateY(-2px);
+}
+
+.order-call svg {
+  flex-shrink: 0;
+  font-size: 21px;
+}
+
+.order-call span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.order-call small {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
 .order-submit {
   width: 100%;
   padding: 18px;
